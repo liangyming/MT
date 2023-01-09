@@ -1,5 +1,6 @@
 import re
 import unicodedata
+import config
 
 
 def unicodeToAscii(s):
@@ -20,13 +21,18 @@ def normalizeString(s):
 class Lang:
     def __init__(self, name):
         self.name = name
-        self.word2index = {}
+        self.word2index = {
+            'SOS': config.SOS_token,
+            'EOS': config.EOS_token,
+            'UNK': config.UNK_token,
+            'PAD': config.PAD_token
+        }
         self.word2count = {}
         self.index2word = {
-            0: 'SOS',
-            1: 'EOS',
-            2: 'UNK',
-            3: 'PAD'
+            config.SOS_token: 'SOS',
+            config.EOS_token: 'EOS',
+            config.UNK_token: 'UNK',
+            config.PAD_token: 'PAD'
         }
         self.n_words = 4
 
@@ -40,5 +46,5 @@ class Lang:
             self.word2count[word] += 1
 
     def add_sentence(self, sentence):
-        for word in sentence.split(' '):
+        for word in sentence:
             self.add_word(word)
