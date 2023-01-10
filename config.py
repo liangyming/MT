@@ -26,6 +26,7 @@ valid_path = 'data/valid.txt'
 test_path = 'data/test.txt'
 save_path = 'result/'
 teacher_forcing = 0.5
+beam_width = 3
 batch_size = 32
 lr = 0.01
 embedding_dim = 256

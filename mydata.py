@@ -101,7 +101,7 @@ if __name__ == '__main__':
     en_lang = Lang('en')
     zh_lang = Lang('zh')
     train_loader, valid_loader, test_loader = get_data(en_lang, zh_lang)
-    encoder = Encoder(config.embedding_dim, config.hidden, en_lang.n_words)
+    encoder = Encoder(config.embedding_dim, config.hidden, en_lang.n_words).to(config.device)
     for i, (input_seq, input_len, out_seq, out_len) in enumerate(train_loader):
         output, hidden = encoder(input_seq, input_len)
         print(input_seq)

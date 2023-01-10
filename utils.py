@@ -18,7 +18,7 @@ def normalizeString(s):
     return s
 
 
-class Lang:
+class Lang(object):
     def __init__(self, name):
         self.name = name
         self.word2index = {
@@ -48,3 +48,16 @@ class Lang:
     def add_sentence(self, sentence):
         for word in sentence:
             self.add_word(word)
+
+
+class BeamSearch(object):
+    def __init__(self, beam_width):
+        self.heapq = list()
+        self.width = beam_width
+
+    def add(self, score, flag, seqs, decoder_input, decoder_hidden):
+        pass
+
+    def __iter__(self):
+        return iter(self.heapq)
+
