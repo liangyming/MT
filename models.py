@@ -240,45 +240,32 @@ class Attention(nn.Module):
             return attn_weight
 
 
-def loss_func(input, output, encoder, decoder, encoder_optimizer, decoder_optimizer, criterion):
-    encoder_hidden = encoder.init_hidden()
-    encoder_optimizer.zero_grad()
-    decoder_optimizer.zero_grad()
+class Seq2Seq(nn.Module):
+    def __init__(self, embedding_dim, hidden_size, input_vocab_size, out_vocab_size):
+        super(Seq2Seq, self).__init__()
+        self.encoder = Encoder(
+            embedding_dim=embedding_dim,
+            hidden_size=hidden_size,
+            vocab_size=input_vocab_size
+        ).to(config.device)
+        self.decoder = AttnDecoder(
+            embedding_dim=embedding_dim,
+            hidden_size=hidden_size,
+            vocab_size=out_vocab_size
+        ).to(config.device)
 
-    input_length = input.size(0)
-    output_length = output.size(0)
-    encoder_outputs = torch.zeros(config.MAX_len + 1, encoder.hidden_size, device=config.device)
+    def forward(self, input, target, input_len):
+        encoder_out, encoder_hidden = self.encoder(input, input_len)
+        decoder_out, _ = self.decoder(target, encoder_hidden, encoder_out)
+        return decoder_out
 
-    for ei in range(input_length):
-         encoder_output, encoder_hidden = encoder(input[ei], encoder_hidden)
-         encoder_outputs[ei] = encoder_output[0, 0]
+    def evaluation(self, input, input_len):
+        encoder_out, encoder_hidden = self.encoder(input, input_len)
+        decoder_out = self.decoder.evaluate(encoder_hidden, encoder_out)
+        return decoder_out
 
-    decoder_hidden = encoder_hidden
-    decoder_input = torch.tensor([[config.SOS_token]], device=config.device)
-
-    loss = 0.0
-    if random.random() < config.teacher_forcing:
-        for di in range(output_length):
-            decoder_output, decoder_hidden, decoder_attention = decoder(
-                decoder_input, decoder_hidden, encoder_outputs
-            )
-            loss += criterion(decoder_output, output[di])
-            decoder_input = output[di]
-    else:
-        for di in range(output_length):
-            decoder_output, decoder_hidden, decoder_attention = decoder(
-                decoder_input, decoder_hidden, encoder_outputs
-            )
-            loss += criterion(decoder_output, output[di])
-            topV, topi = decoder_output.topk(1)
-            decoder_input = topi.squeeze().detach()
-            loss += criterion(decoder_output, output[di])
-            if decoder_input.item() == config.EOS_token:
-                break
-
-    loss.backward()
-    encoder_optimizer.step()
-    decoder_optimizer.step()
-
-    return loss.item() / output_length
+    def beam_search(self, input, input_len, beam_width):
+        encoder_out, encoder_hidden = self.encoder(input, input_len)
+        best_seq = self.decoder.beam_search(encoder_hidden, encoder_out, beam_width)
+        return best_seq
 

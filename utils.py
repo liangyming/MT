@@ -1,6 +1,7 @@
 import re
 import unicodedata
 import config
+import heapq
 
 
 def unicodeToAscii(s):
@@ -56,7 +57,9 @@ class BeamSearch(object):
         self.width = beam_width
 
     def add(self, score, flag, seqs, decoder_input, decoder_hidden):
-        pass
+        heapq.heappush(self.heapq, [score, flag, seqs, decoder_input, decoder_hidden])
+        if len(self.heapq) > self.width:
+            heapq.heappop(self.heapq)
 
     def __iter__(self):
         return iter(self.heapq)
