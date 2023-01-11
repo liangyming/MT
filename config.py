@@ -27,9 +27,11 @@ test_path = 'data/test.txt'
 save_path = 'result/'
 teacher_forcing = 0.5
 beam_width = 3
-batch_size = 32
-lr = 0.01
+batch_size = 64
+lr = 5e-4
 embedding_dim = 256
 hidden = 256
-epochs = 10
+epochs = 20
+clip = 1
+warm_up_ratio = 0.1
 
