@@ -169,23 +169,23 @@ class AttnDecoder(nn.Module):
                     value, index = torch.topk(decoder_output_t, k=beam_width)
                     for val, idx in zip(value[0], index[0]):
                         cur_score = score * val.item()
-                        cur_seqs = seqs.append(idx)
+                        cur_seqs = seqs + [idx]
                         decoder_input = torch.tensor([[idx]], device=config.device)
                         if idx.item() == config.EOS_token:
                             cur_flag = True
                         else:
                             cur_flag = False
                         cur_beam.add(cur_score, cur_flag, cur_seqs, decoder_input, decoder_hidden)
-                best_score, best_flag, best_seqs, _, _ = max(cur_beam)
-                if best_flag or (len(best_seqs) == max_decoder_len + 1):
-                    best_seqs = [i.item() for i in best_seqs]
-                    if best_seqs[0] == config.SOS_token:
-                        best_seqs = best_seqs[1:]
-                    if best_seqs[-1] == config.EOS_token:
-                        best_seqs = best_seqs[:-1]
-                    return best_seqs
-                else:
-                    prev_beam = cur_beam
+            best_score, best_flag, best_seqs, _, _ = max(cur_beam)
+            if best_flag or (len(best_seqs) == max_decoder_len + 1):
+                best_seqs = [i.item() for i in best_seqs]
+                if best_seqs[0] == config.SOS_token:
+                    best_seqs = best_seqs[1:]
+                if best_seqs[-1] == config.EOS_token:
+                    best_seqs = best_seqs[:-1]
+                return best_seqs
+            else:
+                prev_beam = cur_beam
 
     def init_hidden(self, input):
         batch_size = input.size(0)

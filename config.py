@@ -2,7 +2,7 @@ import torch
 import logging
 
 
-device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda:2' if torch.cuda.is_available() else 'cpu')
 logging.basicConfig(
     filename='training.log',
     format='%(asctime)s [%(levelname)s]: %(message)s',

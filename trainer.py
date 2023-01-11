@@ -22,9 +22,9 @@ def train(en_lang, zh_lang, train_data, valid_data):
     )
     min_train_loss = float("inf")
     min_valid_loss = float("inf")
-    total_loss = 0.0
     for epoch in range(config.epochs):
         model.train()
+        total_loss = 0.0
         config.logger.info("======Begin training: {} epoch======".format(epoch))
         bar = tqdm(train_data, desc="Seq2Seq training: ", total=len(train_data))
         for index, (input, input_len, target, target_len) in enumerate(bar):
@@ -83,7 +83,8 @@ def eval(model, dataloader, out_vocab_size):
                 .format(index, len(dataloader), loss.item())
             )
             total_loss += loss.item()
-            avg_loss = total_loss / len(dataloader)
-            config.logger.info("average valid loss: {:.6f}".format(avg_loss))
+    avg_loss = total_loss / len(dataloader)
+    config.logger.info("average valid loss: {:.6f}".format(avg_loss))
     return avg_loss
+
 
