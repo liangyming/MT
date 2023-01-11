@@ -29,8 +29,8 @@ def train(en_lang, zh_lang, train_data, valid_data):
             optimizer.zero_grad()
             output = model(input, target, input_len)
             loss = F.nll_loss(
-                target.view(-1, zh_lang.n_words),
-                output.view(-1),
+                output.view(-1, zh_lang.n_words),
+                target.view(-1),
                 ignore_index=config.PAD_token
             )
             loss.backward()
@@ -38,7 +38,7 @@ def train(en_lang, zh_lang, train_data, valid_data):
             optimizer.step()
             scheduler.step()
             bar.set_description(
-                'epoch:{},idx:{}/{},loss{:.6f}'
+                'epoch:{},idx:{}/{},loss:{.6f}'
                 .format(epoch + 1, index, len(train_data), loss.item())
             )
 
@@ -54,7 +54,7 @@ def eval(model, dataloader, out_vocab_size):
     model.eval()
     bar = tqdm(dataloader, desc="Seq2Seq testing: ", total=len(dataloader))
     total_loss = 0.0
-    with torch.no_grad:
+    with torch.no_grad():
         for index, (input, input_len, target, target_len) in enumerate(bar):
             output = model.evaluation(input, input_len)
             loss = F.nll_loss(
