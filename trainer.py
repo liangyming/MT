@@ -20,10 +20,12 @@ def train(en_lang, zh_lang, train_data, valid_data):
         num_training_steps=total_step,
         num_warmup_steps=config.warm_up_ratio * total_step
     )
-    min_loss = float("inf")
+    min_train_loss = float("inf")
+    min_valid_loss = float("inf")
+    total_loss = 0.0
     for epoch in range(config.epochs):
         model.train()
-        config.logger.info("======Begin training======")
+        config.logger.info("======Begin training: {} epoch======".format(epoch))
         bar = tqdm(train_data, desc="Seq2Seq training: ", total=len(train_data))
         for index, (input, input_len, target, target_len) in enumerate(bar):
             optimizer.zero_grad()
@@ -38,15 +40,29 @@ def train(en_lang, zh_lang, train_data, valid_data):
             optimizer.step()
             scheduler.step()
             bar.set_description(
-                'epoch:{},idx:{}/{},loss:{.6f}'
+                'epoch:{},idx:{}/{},loss:{:.6f}'
                 .format(epoch + 1, index, len(train_data), loss.item())
             )
+            total_loss += loss.item()
+        avg_train_loss = total_loss / len(train_data)
+        config.logger.info("average train loss: {:.6f}".format(avg_train_loss))
 
         config.logger.info("======Begin valid======")
-        avg_loss = eval(model, valid_data, zh_lang.n_words)
-        if avg_loss < min_loss:
-            min_loss = avg_loss
-            torch.save(model.state_dict(), "./save/" + str(min_loss)[:5] + "MT_model.pkl")
+        avg_valid_loss = eval(model, valid_data, zh_lang.n_words)
+        if avg_train_loss < min_train_loss:
+            min_train_loss = avg_train_loss
+            torch.save(
+                model.state_dict(),
+                "./save/" + str(min_train_loss)[:5] + "_"
+                + str(epoch) + "train_model.pkl"
+            )
+        if avg_valid_loss < min_valid_loss:
+            min_valid_loss = avg_valid_loss
+            torch.save(
+                model.state_dict(),
+                "./save/" + str(min_valid_loss)[:5] + "_"
+                + str(epoch) + "valid_model.pkl"
+            )
     return model
 
 
@@ -63,9 +79,11 @@ def eval(model, dataloader, out_vocab_size):
                 ignore_index=config.PAD_token
             )
             bar.set_description(
-                'idx:{}/{},loss{:.6f}'
+                'index:{}/{},loss:{:.6f}'
                 .format(index, len(dataloader), loss.item())
             )
             total_loss += loss.item()
-    return total_loss / (index + 1)
+            avg_loss = total_loss / len(dataloader)
+            config.logger.info("average valid loss: {:.6f}".format(avg_loss))
+    return avg_loss
 

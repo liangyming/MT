@@ -31,7 +31,7 @@ batch_size = 64
 lr = 5e-4
 embedding_dim = 256
 hidden = 256
-epochs = 20
+epochs = 50
 clip = 1
 warm_up_ratio = 0.1
 
