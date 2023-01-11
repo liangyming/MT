@@ -226,11 +226,14 @@ class Attention(nn.Module):
             return attn_weight
 
         elif self.method == 'concat':
-            batch_size, encoder_seq_len = encoder_outputs.size
+            batch_size, encoder_seq_len, _ = encoder_outputs.size()
             hidden = decoder_hidden[-1, :, :]  # [batch_size, hidden_size]
-            hidden = hidden.repeat(1, encoder_outputs.size(1), 1)  # [batch_size, seq_len, hidden_size]
+            hidden = hidden.repeat(encoder_seq_len, 1, 1).transpose(1, 0)  # [batch_size, seq_len, hidden_size]
             # concat: [batch_size * seq_len, en_hidden + de_hidden]
-            concat = torch.cat(hidden, encoder_outputs).view(batch_size*encoder_seq_len, -1)
+            print("hidden:", hidden.shape)
+            print("encoder_outputs:", encoder_outputs.shape)
+            print("batch_size*encoder_seq_len:", batch_size*encoder_seq_len)
+            concat = torch.cat((hidden, encoder_outputs), dim=-1).view(batch_size*encoder_seq_len, -1)
             concat = torch.tanh(self.Wa(concat))  # [batch_size * seq_len, hidden_size]
             attn_weight = self.Va(concat)  # [batch_size * seq_len, 1]
             attn_weight = F.log_softmax(

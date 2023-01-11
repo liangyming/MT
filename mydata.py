@@ -2,6 +2,7 @@ import jieba
 import torch
 from torch.utils.data import Dataset, DataLoader
 from utils import *
+import pickle
 import config
 
 
@@ -40,8 +41,8 @@ def collate_fn(batch):
     input_seq = merge(input_seq, input_len, config.MAX_len)
     # 输出句子末尾加了EOS, max_len加一
     out_seq = merge(out_seq, out_len, config.MAX_len + 1)
-    input_len = torch.LongTensor(input_len).to(config.device)
-    out_len = torch.LongTensor(out_len).to(config.device)
+    input_len = torch.tensor(input_len)
+    out_len = torch.tensor(out_len)
     return input_seq, input_len, out_seq, out_len
 
 
@@ -72,6 +73,10 @@ def get_data(en_lang, zh_lang):
     config.logger.info("train data size: {}".format(len(train_data)))
     config.logger.info("valid data size: {}".format(len(valid_data)))
     config.logger.info("test data size: {}".format(len(test_data)))
+    # 保存词表
+    pickle.dump(en_lang, open("./save/en_lang.pkl", 'wb'))
+    pickle.dump(zh_lang, open("./save/zh_lang.pkl", 'wb'))
+
     train_set = MTDataset(en_lang, zh_lang, train_data)
     train_loader = DataLoader(
         dataset=train_set,
@@ -96,15 +101,15 @@ def get_data(en_lang, zh_lang):
     return train_loader, valid_loader, test_loader
 
 
-if __name__ == '__main__':
-    from models import Encoder
-    en_lang = Lang('en')
-    zh_lang = Lang('zh')
-    train_loader, valid_loader, test_loader = get_data(en_lang, zh_lang)
-    encoder = Encoder(config.embedding_dim, config.hidden, en_lang.n_words).to(config.device)
-    for i, (input_seq, input_len, out_seq, out_len) in enumerate(train_loader):
-        output, hidden = encoder(input_seq, input_len)
-        print(input_seq)
-        print(input_len)
-        print(out_seq)
-        print(out_len)
+# if __name__ == '__main__':
+#     from models import Encoder
+#     en_lang = Lang('en')
+#     zh_lang = Lang('zh')
+#     train_loader, valid_loader, test_loader = get_data(en_lang, zh_lang)
+#     encoder = Encoder(config.embedding_dim, config.hidden, en_lang.n_words).to(config.device)
+#     for i, (input_seq, input_len, out_seq, out_len) in enumerate(train_loader):
+#         output, hidden = encoder(input_seq, input_len)
+#         print(input_seq)
+#         print(input_len)
+#         print(out_seq)
+#         print(out_len)
